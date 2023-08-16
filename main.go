@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/RaymondCode/simple-demo/service"
+	"simple-demo/service"
+
 	"github.com/gin-gonic/gin"
 )
 

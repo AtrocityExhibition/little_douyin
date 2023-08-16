@@ -50,9 +50,11 @@ func TestUserAction(t *testing.T) {
 	loginResp.Value("user_id").Number().Gt(0)
 	loginResp.Value("token").String().Length().Gt(0)
 
-	token := loginResp.Value("token").String().Raw()
+	token := "Zhang123"
+	uid := 2
 	userResp := e.GET("/douyin/user/").
 		WithQuery("token", token).
+		WithQuery("user_id", uid).
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object()
@@ -66,12 +68,10 @@ func TestUserAction(t *testing.T) {
 func TestPublish(t *testing.T) {
 	e := newExpect(t)
 
-	userId, token := getTestUserToken(testUserA, e)
-
 	publishResp := e.POST("/douyin/publish/action/").
 		WithMultipart().
 		WithFile("data", "../public/bear.mp4").
-		WithFormField("token", token).
+		WithFormField("token", "").
 		WithFormField("title", "Bear").
 		Expect().
 		Status(http.StatusOK).
@@ -79,7 +79,7 @@ func TestPublish(t *testing.T) {
 	publishResp.Value("status_code").Number().Equal(0)
 
 	publishListResp := e.GET("/douyin/publish/list/").
-		WithQuery("user_id", userId).WithQuery("token", token).
+		WithQuery("user_id", 1).WithQuery("token", "zhanglei").
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object()
