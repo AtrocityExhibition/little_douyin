@@ -20,10 +20,15 @@ type FeedResponse struct {
 func Feed(c *gin.Context) {
 	var searchtime time.Time
 	var nexttime time.Time
-	var err error
-	lasttime := c.Query("latest_time")
-	if len(lasttime) != 0 {
-		searchtime, err = time.Parse("2006-01-02 15:04:05", lasttime)
+	lasttimestr := c.Query("latest_time")
+	lasttimestamp, err := strconv.ParseInt(lasttimestr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, UserLoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "parse time error" + err.Error()},
+		})
+	}
+	if len(lasttimestr) != 1 {
+		searchtime = time.Unix(lasttimestamp, 0)
 	} else {
 		searchtime = time.Now()
 	}

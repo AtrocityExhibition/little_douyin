@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"simple-demo/controller"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,12 @@ func initRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
 	r.Static("/static", "./public")
 
+	// home page
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Main website",
+		})
+	})
 	apiRouter := r.Group("/douyin")
 
 	// basic apis
