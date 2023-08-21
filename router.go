@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"simple-demo/controller"
+	"simple-demo/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,6 +11,7 @@ import (
 func initRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
 	r.Static("/static", "./public")
+	r.LoadHTMLGlob("templates/*")
 
 	// home page
 	r.GET("/", func(c *gin.Context) {
@@ -20,12 +22,12 @@ func initRouter(r *gin.Engine) {
 	apiRouter := r.Group("/douyin")
 
 	// basic apis
-	apiRouter.GET("/feed/", controller.Feed)
-	apiRouter.GET("/user/", controller.UserInfo)
+	apiRouter.GET("/feed/", middleware.AuthGetId(), controller.Feed)
+	apiRouter.GET("/user/", middleware.AuthWithId(), controller.UserInfo)
 	apiRouter.POST("/user/register/", controller.Register)
 	apiRouter.POST("/user/login/", controller.Login)
-	apiRouter.POST("/publish/action/", controller.Publish)
-	apiRouter.GET("/publish/list/", controller.PublishList)
+	apiRouter.POST("/publish/action/", middleware.AuthPostId(), controller.Publish)
+	apiRouter.GET("/publish/list/", middleware.AuthWithId(), controller.PublishList)
 
 	// extra apis - I
 	apiRouter.POST("/favorite/action/", controller.FavoriteAction)

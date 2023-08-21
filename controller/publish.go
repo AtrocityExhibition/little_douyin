@@ -19,14 +19,7 @@ type VideoListResponse struct {
 // Publish check token then save upload file to public directory
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
-
-	//todo: 鉴权信息保留在内存中, 是可以的, 但是不能用map, 好像可以用 sync.map
-	/*
-		if _, exist := usersLoginInfo[token]; !exist {
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-			return
-		}
-	*/
+	uid := c.GetInt("userId")
 
 	data, err := c.FormFile("data")
 	if err != nil {
@@ -49,12 +42,10 @@ func Publish(c *gin.Context) {
 		return
 	}
 
-	//todo: 改一下表结构, 必须有filename以生成play_url
-	//todo: 考虑一下在token中间加入 id + usernmae
-	title := c.PostForm("title")
 	var tempvideo repository.Video
+	title := c.PostForm("title")
 	tempvideo.Title = title
-	tempvideo.Author_id = 12
+	tempvideo.Author_id = uid
 
 	db := repository.GETInstanceDB()
 	err = db.InsertVideo(tempvideo)
@@ -75,8 +66,6 @@ func Publish(c *gin.Context) {
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
 	s_uid := c.Query("user_id")
-	//todo: token
-	// token := c.Query("token")
 
 	db := repository.GETInstanceDB()
 	uid, err := strconv.ParseInt(s_uid, 10, 32)
@@ -101,7 +90,6 @@ func PublishList(c *gin.Context) {
 	for _, v := range r_videos {
 		//todo: author_name 直接存在视频表里还是在此处搜索用户信息, 这取决于是否实现拓展功能
 		//todo: play_url 和 cover_url 修改
-		//todo: 回应结构体数据待完善, 没有title
 		s_authorid := strconv.Itoa(v.Author_id)
 		var tempvideoinfo Video
 		tempvideoinfo.Id = int64(v.Id)
@@ -109,6 +97,7 @@ func PublishList(c *gin.Context) {
 		tempvideoinfo.Author.Name = s_authorid
 		tempvideoinfo.Author.IsFollow = false
 		tempvideoinfo.IsFavorite = false
+		tempvideoinfo.Title = v.Title
 		tempvideoinfo.CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
 		tempvideoinfo.PlayUrl = "https://www.w3schools.com/html/movie.mp4"
 		videos = append(videos, tempvideoinfo)

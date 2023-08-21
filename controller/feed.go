@@ -63,6 +63,7 @@ func Feed(c *gin.Context) {
 			tempvideoinfo.Author.Name = s_authorid
 			tempvideoinfo.Author.IsFollow = false
 			tempvideoinfo.IsFavorite = false
+			tempvideoinfo.Title = v.Title
 			tempvideoinfo.CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
 			tempvideoinfo.PlayUrl = "https://www.w3schools.com/html/movie.mp4"
 			videos = append(videos, tempvideoinfo)

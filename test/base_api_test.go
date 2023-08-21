@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"simple-demo/repository"
+	"simple-demo/util"
 	"testing"
 	"time"
 )
@@ -15,8 +17,9 @@ func TestMainPage(t *testing.T) {
 
 func TestFeed(t *testing.T) {
 	e := newExpect(t)
+	token, _ := util.NewToken(repository.User{Id: 4})
 
-	feedResp := e.GET("/douyin/feed/").WithQuery("latest_time", "0").Expect().Status(http.StatusOK).JSON().Object()
+	feedResp := e.GET("/douyin/feed/").WithQuery("token", token).WithQuery("latest_time", "0").Expect().Status(http.StatusOK).JSON().Object()
 	feedResp.Value("status_code").Number().Equal(0)
 	feedResp.Value("video_list").Array().Length().Gt(0)
 
@@ -26,6 +29,7 @@ func TestFeed(t *testing.T) {
 		video.ContainsKey("author")
 		video.Value("play_url").String().NotEmpty()
 		video.Value("cover_url").String().NotEmpty()
+		//1
 	}
 }
 
@@ -55,8 +59,8 @@ func TestUserAction(t *testing.T) {
 	loginResp.Value("user_id").Number().Gt(0)
 	loginResp.Value("token").String().Length().Gt(0)
 
-	token := "Zhang123"
-	uid := 2
+	token, _ := util.NewToken(repository.User{Id: 4})
+	uid := 4
 	userResp := e.GET("/douyin/user/").
 		WithQuery("token", token).
 		WithQuery("user_id", uid).
@@ -68,15 +72,17 @@ func TestUserAction(t *testing.T) {
 	userInfo.NotEmpty()
 	userInfo.Value("id").Number().Gt(0)
 	userInfo.Value("name").String().Length().Gt(0)
+	//1  r3f
 }
 
 func TestPublish(t *testing.T) {
 	e := newExpect(t)
+	token, _ := util.NewToken(repository.User{Id: 4})
 
 	publishResp := e.POST("/douyin/publish/action/").
 		WithMultipart().
 		WithFile("data", "../public/bear.mp4").
-		WithFormField("token", "").
+		WithFormField("token", token).
 		WithFormField("title", "Bear").
 		Expect().
 		Status(http.StatusOK).
@@ -84,7 +90,7 @@ func TestPublish(t *testing.T) {
 	publishResp.Value("status_code").Number().Equal(0)
 
 	publishListResp := e.GET("/douyin/publish/list/").
-		WithQuery("user_id", 1).WithQuery("token", "zhanglei").
+		WithQuery("user_id", 4).WithQuery("token", token).
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object()

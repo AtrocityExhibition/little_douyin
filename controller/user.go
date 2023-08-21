@@ -2,13 +2,14 @@ package controller
 
 import (
 	//"fmt"
-	"fmt"
+
 	"net/http"
 	"strconv"
 
 	//	"sync/atomic"
 
 	"simple-demo/repository"
+	"simple-demo/util"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -44,9 +45,8 @@ func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	var uid int
 	db := repository.GETInstanceDB()
-	err := db.InsertUser(username, password, &uid)
+	uinfo, err := db.InsertUser(username, password)
 
 	if err == gorm.ErrDuplicatedKey {
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -57,10 +57,16 @@ func Register(c *gin.Context) {
 			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
 		})
 	} else {
+		token, err := util.NewToken(uinfo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, UserLoginResponse{
+				Response: Response{StatusCode: 1, StatusMsg: err.Error()},
+			})
+		}
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
-			UserId:   int64(uid),
-			Token:    username + password,
+			UserId:   int64(uinfo.Id),
+			Token:    token,
 		})
 	}
 
@@ -70,10 +76,8 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	var uid int
 	db := repository.GETInstanceDB()
-	err := db.LoginUser(username, password, &uid)
-	fmt.Println(uid)
+	uinfo, err := db.LoginUser(username, password)
 
 	if err == gorm.ErrRecordNotFound {
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -83,22 +87,27 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
 		})
-	} else if uid == -1 {
+	} else if uinfo.Id == -1 {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "wrong password"},
 		})
 	} else {
+		token, err := util.NewToken(uinfo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, UserLoginResponse{
+				Response: Response{StatusCode: 1, StatusMsg: err.Error()},
+			})
+		}
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
-			UserId:   int64(uid),
-			Token:    username + password,
+			UserId:   int64(uinfo.Id),
+			Token:    token,
 		})
 	}
 }
 
 func UserInfo(c *gin.Context) {
 	s_uid := c.Query("user_id")
-	token := c.Query("token")
 	uid, err := strconv.ParseInt(s_uid, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -109,7 +118,7 @@ func UserInfo(c *gin.Context) {
 
 	var uinfo repository.User
 	db := repository.GETInstanceDB()
-	err = db.ShowUser(int(uid), &uinfo)
+	uinfo, err = db.ShowUser(int(uid))
 
 	if err == gorm.ErrRecordNotFound {
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -118,10 +127,6 @@ func UserInfo(c *gin.Context) {
 	} else if err != nil {
 		c.JSON(http.StatusInternalServerError, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
-		})
-	} else if uinfo.Username+uinfo.Password != token {
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "authenticate failed"},
 		})
 	} else {
 		user := User{}

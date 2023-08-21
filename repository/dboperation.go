@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -26,33 +25,32 @@ func (m *dbConnection) SearchVideosbyTime(t time.Time) ([]Video, error) {
 }
 
 // 插入User /douyin/user/register
-func (m *dbConnection) InsertUser(username string, password string, uid *int) error {
-	tempu := User{Username: username, Password: password}
-	fmt.Println(m.db.PrepareStmt)
-	res := m.db.Create(&tempu)
-	*uid = tempu.Id
-	return res.Error
+func (m *dbConnection) InsertUser(username string, password string) (User, error) {
+	u := User{}
+	u.Username = username
+	u.Password = password
+	res := m.db.Create(&u)
+	return u, res.Error
 }
 
 // 登录User /douyin/user/login
-func (m *dbConnection) LoginUser(username string, password string, uid *int) error {
-	tempu := User{}
-	res := m.db.Where("username = ?", username).First(&tempu)
+func (m *dbConnection) LoginUser(username string, password string) (User, error) {
+	u := User{}
+	res := m.db.Where("username = ?", username).First(&u)
 	if res.Error != nil {
-		return res.Error
+		return u, res.Error
 	}
-	if tempu.Password != password {
-		*uid = -1
-	} else {
-		*uid = tempu.Id
+	if u.Password != password {
+		u.Id = -1
 	}
-	return nil
+	return u, nil
 }
 
 // 查询User, 传出参数 user, /douyin/user
-func (m *dbConnection) ShowUser(uid int, u *User) error {
-	res := m.db.Where("id = ?", uid).First(u)
-	return res.Error
+func (m *dbConnection) ShowUser(uid int) (User, error) {
+	u := User{}
+	res := m.db.Where("id = ?", uid).First(&u)
+	return u, res.Error
 }
 
 // 插入video /douyin/publish/action/
