@@ -5,10 +5,14 @@ import (
 )
 
 type Video struct {
-	Id         int       `gorm:"primary_key"`
-	Author_id  int       `gorm:"not null"`
-	Title      string    `gorm:"not null"`
-	Createtime time.Time `gorm:"autoCreateTime;type:datetime"`
+	Id            int    `gorm:"primary_key"`
+	Author_id     int    `gorm:"not null"`
+	Title         string `gorm:"not null"`
+	PlayUrl       string `gorm:"not null"`
+	CoverUrl      string `gorm:"not null"`
+	FavoriteCount int64
+	CommentCount  int64
+	Createtime    time.Time `gorm:"autoCreateTime;type:datetime"`
 }
 
 type User struct {

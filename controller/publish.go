@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
+	"simple-demo/util"
 	"strconv"
 
 	"simple-demo/repository"
@@ -33,19 +36,46 @@ func Publish(c *gin.Context) {
 	filename := filepath.Base(data.Filename)
 	user := usersLoginInfo[token]
 	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
-	saveFile := filepath.Join("./public/", finalName)
-	if err := c.SaveUploadedFile(data, saveFile); err != nil {
+	playUrl := "https://douyin-duu.oss-cn-beijing.aliyuncs.com/" + finalName
+	CoverUrl := playUrl + "?x-oss-process=video/snapshot,t_0,f_jpg,w_800,h_600"
+
+	// 上传到oss
+	file, err := data.Open()
+	if err != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
 		})
 		return
 	}
+	defer file.Close()
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		return
+	}
+	err = util.Bucket.PutObject(finalName, bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
+	//saveFile := filepath.Join("./public/", finalName)
+	//if err := c.SaveUploadedFile(data, saveFile); err != nil {
+	//	c.JSON(http.StatusOK, Response{
+	//		StatusCode: 1,
+	//		StatusMsg:  err.Error(),
+	//	})
+	//	return
+	//}
 
 	var tempvideo repository.Video
 	title := c.PostForm("title")
 	tempvideo.Title = title
 	tempvideo.Author_id = uid
+	tempvideo.PlayUrl = playUrl
+	tempvideo.CoverUrl = CoverUrl
 
 	db := repository.GETInstanceDB()
 	err = db.InsertVideo(tempvideo)

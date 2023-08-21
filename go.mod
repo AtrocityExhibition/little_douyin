@@ -12,10 +12,12 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	golang.org/x/time v0.3.0 // indirect
 )
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
