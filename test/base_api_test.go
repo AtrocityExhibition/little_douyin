@@ -17,9 +17,8 @@ func TestMainPage(t *testing.T) {
 
 func TestFeed(t *testing.T) {
 	e := newExpect(t)
-	token, _ := util.NewToken(repository.User{Id: 4})
 
-	feedResp := e.GET("/douyin/feed/").WithQuery("token", token).WithQuery("latest_time", "0").Expect().Status(http.StatusOK).JSON().Object()
+	feedResp := e.GET("/douyin/feed/").WithQuery("latest_time", "1692618767539").Expect().Status(http.StatusOK).JSON().Object()
 	feedResp.Value("status_code").Number().Equal(0)
 	feedResp.Value("video_list").Array().Length().Gt(0)
 

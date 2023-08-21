@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,6 +22,7 @@ func Feed(c *gin.Context) {
 	var searchtime time.Time
 	var nexttime time.Time
 	lasttimestr := c.Query("latest_time")
+	fmt.Println(lasttimestr)
 	lasttimestamp, err := strconv.ParseInt(lasttimestr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, UserLoginResponse{
@@ -28,10 +30,16 @@ func Feed(c *gin.Context) {
 		})
 	}
 	if len(lasttimestr) != 1 {
-		searchtime = time.Unix(lasttimestamp, 0)
+		if lasttimestamp >= 31507200000 {
+			searchtime = time.Unix(lasttimestamp/1000, 0)
+		} else {
+			searchtime = time.Unix(lasttimestamp, 0)
+		}
 	} else {
 		searchtime = time.Now()
 	}
+	//fmt.Println(searchtime)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "parse time error" + err.Error()},

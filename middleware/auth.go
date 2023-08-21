@@ -37,7 +37,7 @@ func AuthWithId() gin.HandlerFunc {
 }
 
 // 参数为token, Get方法, 检验token并将id放入上下文中
-func AuthGetId() gin.HandlerFunc {
+func AuthGet() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.Query("token")
 
@@ -53,8 +53,26 @@ func AuthGetId() gin.HandlerFunc {
 	}
 }
 
+// 参数token是可选项, Get方法, 检验token并将id放入上下文中
+func AuthGetTokenOptional() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		token := ctx.Query("token")
+		if token != "" {
+			uid := util.Parsetoken(token)
+			if uid == -1 {
+				ctx.AbortWithStatusJSON(http.StatusOK, failresponse{
+					StatusCode: 1,
+					StatusMsg:  "wrong token",
+				})
+			}
+
+			ctx.Set("userId", uid)
+		}
+	}
+}
+
 // 参数为token, Post方法, 检验token并将id放入上下文中
-func AuthPostId() gin.HandlerFunc {
+func AuthPost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.PostForm("token")
 
